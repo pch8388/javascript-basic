@@ -17,6 +17,8 @@ class GamePanel {
     initPanel() {
         document.querySelector('#exec').addEventListener('click', ({target}) => {
             
+            this.gameStart = true;
+
             this.horizontal = Number.parseInt(this.hor.value);
             this.vertical = Number.parseInt(this.ver.value);
             this.bombNumber = Number.parseInt(this.bomb.value);
@@ -27,7 +29,8 @@ class GamePanel {
                 const row = document.createElement('tr');
                 const arr = [];
                 for (let j = 0; j < this.horizontal; j++) {
-                    const td = document.createElement('td');                    
+                    const td = document.createElement('td');
+                    td.classList.add('close');                    
                     row.appendChild(td);
                     arr.push(1);
                 }
@@ -79,12 +82,59 @@ class GamePanel {
 
             console.log(`${rowIdx} : ${cellIdx}`);
         });
+
+        this.tbody.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            const target = e.target;
+            if(target.tagName.toLowerCase() != 'td') return;
+
+            //TODO : 우클릭 시 이미 열려 있거나 check 되 있는 대상은 무시
+
+            const len = this.tbody.querySelectorAll('.check').length;
+            if (len == this.bombNumber) {
+                this.findAllBomb();
+            }
+
+            if (len > this.bombNumber) {
+                return;
+            }
+
+            target.classList.remove('close');
+            target.classList.add('check');
+        });
+    }
+
+    findAllBomb() {
+        if (document.querySelector('#submit')) return;
+
+        console.log('다 찾았나 확인');
+        const button = document.createElement('button');
+        button.id = 'submit';
+        button.textContent = '결정';
+
+        button.addEventListener('click', () => {
+            // TODO : 정답 확인 + 게임을 종료시킨다
+            this.gameOver();
+        });
+        document.body.appendChild(button);
+    }
+
+    gameOver() {
+        this.tbody.querySelectorAll('.close').forEach((c) => {
+            c.classList.remove('close');
+        });
+
+        this.gameStart = false;
     }
 
     pick(x, y) {
 
+        if(!this.gameStart) return;
+
         const _td = this.tbody.querySelectorAll('tr')[x]
                                 .querySelectorAll('td')[y];
+
+        _td.classList.remove('close');
 
         const pickItem = this.dataSet[x][y];
         if (pickItem === 'X') {
